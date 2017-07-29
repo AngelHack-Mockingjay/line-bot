@@ -53,29 +53,35 @@ def callback():
     return 'OK'
 
 def replyMessage(event, content):
-    # try:
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text=content))
-    # except LineBotApiError as e:
-    #     print (e)
+    try:
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=content))
+    except LineBotApiError as e:
+        print (e)
 
 def getPullContentToString(jd):
     content = ''
-    for d in jd['messageList']:
+    for d in jd:
         strs =  "({})說：{} (來自{})\n".format(d['userName'],d['userMessage'],d['userPlatform'])
         print (strs)
         content = content + strs
     return content
 
-def filterData(userId, data):
-    myUpdatedAt = data['userObject'][userId]['userUpdatedAt']
-    for message in data['messageList']:
-        messageCreatedOn = message['createdOn']
-        if myUpdatedAt > messageCreatedOn:
-            # remove
-            data['messageList'].remove(message)
-    return data
+def getFilteredMessage(userId, data):
+    new_data = []
+    try:
+        myUpdatedAt = data['userObject'][userId]['userUpdatedAt']
+        for message in data['messageList']:
+            messageCreatedOn = message['createdOn']
+            if myUpdatedAt < messageCreatedOn:
+                # add
+                print ('add ', message)
+                new_data.append(message)
+    except KeyError as e:
+        print (e)
+    print (new_data)
+    return new_data
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
@@ -89,18 +95,24 @@ def handle_message(event):
         url = server_host + '/message/list'
         req = requests.get(url)
         data = req.json()
-        filteredData = filterData(userId, data)
-        replyMessage(event, getPullContentToString(filteredData))
+        filteredMessage = getFilteredMessage(userId, data)
+        replyMessage(event, getPullContentToString(filteredMessage))
 
         # update time
         url2 = server_host + '/message/user/update'
         payload2 = {'userID': userId, 'userPlatform': 'line'}
         req2 = requests.post(url2, json=payload2)
+
         return 0
 
     payload = {'userID':userId, 'userName':'Guest', 'userMessage':event.message.text, 'userPlateform':'line'}
     url = server_host + '/message'
     req = requests.post(url, json=payload)
+
+    # update time
+    url2 = server_host + '/message/user/update'
+    payload2 = {'userID': userId, 'userPlatform': 'line'}
+    req2 = requests.post(url2, json=payload2)
 
 
 if __name__ == "__main__":
