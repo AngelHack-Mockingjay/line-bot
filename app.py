@@ -18,6 +18,8 @@ from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
 )
 
+server_host = 'https://32962999.ngrok.io'
+
 # get channel_secret and channel_access_token from your environment variable
 channel_secret = os.getenv('LINE_CHANNEL_SECRET', None)
 channel_access_token = os.getenv('LINE_CHANNEL_ACCESS_TOKEN', None)
@@ -75,19 +77,19 @@ def handle_message(event):
 
     if event.message.text == '哈哈':
         # get message
-        url = 'http://192.168.1.113:14433/message/list'
+        url = server_host + '/message/list'
         req = requests.get(url)
         data = req.json()
         replyMessage(event, getPullContentToString(data['messageList']))
 
         # update time
-        url2 = 'http://192.168.1.113:14433/message/user/update'
+        url2 = server_host + '/message/user/update'
         payload2 = {'userID': userId, 'userPlatform': 'line'}
         req2 = requests.post(url2, json=payload2)
         return 0
 
     payload = {'userID':userId, 'userName':'Guest', 'userMessage':event.message.text, 'userPlateform':'line'}
-    url = 'http://192.168.1.113:14433/message'
+    url = server_host + '/message'
     req = requests.post(url, json=payload)
 
 
