@@ -12,7 +12,7 @@ from linebot import (
     LineBotApi, WebhookHandler
 )
 from linebot.exceptions import (
-    InvalidSignatureError
+    InvalidSignatureError, LineBotApiError
 )
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
@@ -50,7 +50,7 @@ def callback():
 
     return 'OK'
 
-def replyMessage(content):
+def replyMessage(event, content):
     try:
         line_bot_api.reply_message(
             event.reply_token,
@@ -58,21 +58,37 @@ def replyMessage(content):
     except LineBotApiError as e:
         print (e)
 
+def getPullContentToString(jd):
+    content = ''
+    for d in jd:
+        strs =  "({})說：{} (來自{})\n".format(d['userName'],d['userMessage'],d['userPlatform'])
+        print (strs)
+        content = content + strs
+    return content
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    if event.message.text == '拉':
-        content = ''
-        content += event.message.text + ': pull some message'
-        replyMessage(content)
+    print (event)
+    userId = event.source.user_id
+
+    print (event.message.text)
+
+    if event.message.text == '哈哈':
+        # get message
+        url = 'http://192.168.1.113:14433/message/list'
+        req = requests.get(url)
+        data = req.json()
+        replyMessage(event, getPullContentToString(data['messageList']))
+
+        # update time
+        url2 = 'http://192.168.1.113:14433/message/user/update'
+        payload2 = {'userID': userId, 'userPlatform': 'line'}
+        req2 = requests.post(url2, json=payload2)
         return 0
 
-    userId = event.source.userId
-    payload = {'userId':userId,'userName':'Guest','userMessage':event.message.text,'userPlateform':'line'}
-    jsondata = json.dumps(payload, ensure_ascii=False)
-
-    url = 'http://10.187.1.121:14433/message'
-    req = res.post(url, params=jsondata)
-    print (req)
+    payload = {'userID':userId, 'userName':'Guest', 'userMessage':event.message.text, 'userPlateform':'line'}
+    url = 'http://192.168.1.113:14433/message'
+    req = requests.post(url, json=payload)
 
 
 if __name__ == "__main__":
