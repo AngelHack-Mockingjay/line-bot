@@ -53,28 +53,29 @@ def callback():
     return 'OK'
 
 def replyMessage(event, content):
-    try:
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=content))
-    except LineBotApiError as e:
-        print (e)
+    # try:
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=content))
+    # except LineBotApiError as e:
+    #     print (e)
 
 def getPullContentToString(jd):
     content = ''
-    for d in jd:
+    for d in jd['messageList']:
         strs =  "({})說：{} (來自{})\n".format(d['userName'],d['userMessage'],d['userPlatform'])
         print (strs)
         content = content + strs
     return content
 
 def filterData(userId, data):
-    result = {}
-    for d in data['messageList']:
-        print (d)
-        if d['createdOn'] > d.['userObject'][userId]['userUpdatedAt']:
-            result.append(d)
-    return result
+    myUpdatedAt = data['userObject'][userId]['userUpdatedAt']
+    for message in data['messageList']:
+        messageCreatedOn = message['createdOn']
+        if myUpdatedAt > messageCreatedOn:
+            # remove
+            data['messageList'].remove(message)
+    return data
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
@@ -88,10 +89,7 @@ def handle_message(event):
         url = server_host + '/message/list'
         req = requests.get(url)
         data = req.json()
-        print (data)
-        n = json.dumps(data)
-        o = json.loads(n)
-        filteredData = filterData(userId, o)
+        filteredData = filterData(userId, data)
         replyMessage(event, getPullContentToString(filteredData))
 
         # update time
