@@ -68,6 +68,13 @@ def getPullContentToString(jd):
         content = content + strs
     return content
 
+def filterData(userId, data):
+    result = {}
+    for d in data['messageList']:
+        if d.createdOn > d.userObject[userId]['userUpdatedAt']:
+            result.append(d)
+    return result
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     print (event)
@@ -80,7 +87,9 @@ def handle_message(event):
         url = server_host + '/message/list'
         req = requests.get(url)
         data = req.json()
-        replyMessage(event, getPullContentToString(data['messageList']))
+        print (data)
+        filteredData = filterData(userId, data)
+        replyMessage(event, getPullContentToString(filteredData))
 
         # update time
         url2 = server_host + '/message/user/update'
