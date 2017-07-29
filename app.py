@@ -3,6 +3,7 @@ import sys
 import requests
 import re
 import random
+import json
 
 from bs4 import BeautifulSoup
 from flask import Flask, request, abort
@@ -49,15 +50,30 @@ def callback():
 
     return 'OK'
 
-@handler.add(MessageEvent, message=TextMessage)
-def handle_message(event):
-    event_main_action = event.message.text
-    if event_main_action == '拉':
-        content = ''
-        content += event_main_action + ': pull some message'
+def replyMessage(content):
+    try:
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(text=content))
+    except LineBotApiError as e:
+        print (e)
+
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    if event.message.text == '拉':
+        content = ''
+        content += event.message.text + ': pull some message'
+        replyMessage(content)
+        return 0
+
+    userId = event.source.userId
+    payload = {'userId':userId,'userName':'Guest','userMessage':event.message.text,'userPlateform':'line'}
+    jsondata = json.dumps(payload, ensure_ascii=False)
+
+    url = 'http://10.187.1.121:14433/message'
+    req = res.post(url, params=jsondata)
+    print (req)
+
 
 if __name__ == "__main__":
     app.run()
