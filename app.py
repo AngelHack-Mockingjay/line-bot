@@ -71,6 +71,7 @@ def getPullContentToString(jd):
 def filterData(userId, data):
     result = {}
     for d in data['messageList']:
+        print (d)
         if d.createdOn > d.userObject[userId]['userUpdatedAt']:
             result.append(d)
     return result
