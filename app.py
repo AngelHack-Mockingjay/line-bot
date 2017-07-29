@@ -88,7 +88,9 @@ def handle_message(event):
         req = requests.get(url)
         data = req.json()
         print (data)
-        filteredData = filterData(userId, data)
+        n = json.dumps(data)
+        o = json.loads(n)
+        filteredData = filterData(userId, o)
         replyMessage(event, getPullContentToString(filteredData))
 
         # update time
