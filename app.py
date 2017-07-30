@@ -63,6 +63,7 @@ def replyMessage(event, content):
 def getPullContentToString(jd):
     content = ''
     for d in jd:
+        print (d['userName'], d['userMessage'], d['userPlatform'])
         strs =  "({})說：{} (來自{})\n".format(d['userName'],d['userMessage'],d['userPlatform'])
         print (strs)
         content = content + strs
@@ -90,7 +91,7 @@ def handle_message(event):
 
     print (event.message.text)
 
-    if event.message.text == '哈哈':
+    if event.message.text.find('哈哈') > -1:
         # get message
         url = server_host + '/message/list'
         req = requests.get(url)
@@ -102,6 +103,10 @@ def handle_message(event):
         url2 = server_host + '/message/user/update'
         payload2 = {'userID': userId, 'userPlatform': 'line'}
         req2 = requests.post(url2, json=payload2)
+
+        payload = {'userID':userId, 'userName':'Guest', 'userMessage':event.message.text, 'userPlateform':'line'}
+        url = server_host + '/message'
+        req = requests.post(url, json=payload)
 
         return 0
 
