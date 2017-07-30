@@ -60,11 +60,12 @@ def replyMessage(event, content):
     except LineBotApiError as e:
         print (e)
 
-def getPullContentToString(jd):
+def getPullContentToString(jd,userId):
     content = ''
-    for d in jd:
-        print (d['userName'], d['userMessage'], d['userPlatform'])
-        strs =  "({})說：{} (來自{})\n".format(d['userName'],d['userMessage'],d['userPlatform'])
+    for d in jd['messageList']:
+        userName = jd['userObject'][d['userID']]['userName']
+        print (userName, d['userMessage'], d['userPlatform'])
+        strs =  "({})說：{} (來自{})\n".format(userName,d['userMessage'],d['userPlatform'])
         print (strs)
         content = content + strs
     return content
@@ -79,10 +80,10 @@ def getFilteredMessage(userId, data):
                 # add
                 print ('add ', message)
                 new_data.append(message)
+        data['messageList'] = new_data
     except KeyError as e:
         print (e)
-    print (new_data)
-    return new_data
+    return data
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
@@ -96,8 +97,8 @@ def handle_message(event):
         url = server_host + '/message/list'
         req = requests.get(url)
         data = req.json()
-        filteredMessage = getFilteredMessage(userId, data)
-        replyMessage(event, getPullContentToString(filteredMessage))
+        filteredData = getFilteredMessage(userId, data)
+        replyMessage(event, getPullContentToString(filteredData,userId))
 
         # update time
         url2 = server_host + '/message/user/update'
