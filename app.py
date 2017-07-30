@@ -18,7 +18,7 @@ from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
 )
 
-server_host = 'https://32962999.ngrok.io'
+server_host = 'https://c1d0f3dc.ngrok.io'
 
 # get channel_secret and channel_access_token from your environment variable
 channel_secret = os.getenv('LINE_CHANNEL_SECRET', None)
