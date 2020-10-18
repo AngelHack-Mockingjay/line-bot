@@ -38,7 +38,7 @@ SQLAlchemy==1.1.9
 tox==2.7.0
 tqdm==4.14.0
 twine==1.9.1
-urllib3==1.21.1
+urllib3==1.24.2
 virtualenv==15.1.0
 Werkzeug==0.15.3
 wit==4.2.0
